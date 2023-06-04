@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const helmet = require('helmet');
 
-// const { PRODUCTION_DB } = require('./utils/config');
+const { PRODUCTION_DB } = require('./utils/config');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const limiter = require('./utils/rate-limiter-config');
@@ -13,13 +13,13 @@ require('dotenv').config();
 
 const allowedCors = [];
 
-// const { PORT = 3001, NODE_ENV, DB_ADDRESS } = process.env;
+const { PORT = 3001, NODE_ENV, DB_ADDRESS } = process.env;
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
 
-mongoose.connect('mongodb://127.0.0.1:27017/bitfilmsdb', { useNewUrlParser: true });
+mongoose.connect(`mongodb://${NODE_ENV === 'production' ? DB_ADDRESS : PRODUCTION_DB}:27017/bitfilmsdb`, { useNewUrlParser: true });
 
 app.use(requestLogger);
 
