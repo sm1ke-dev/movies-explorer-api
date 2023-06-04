@@ -3,11 +3,14 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 const { NotFoundError, BadRequestError, ConflictingRequestError } = require('../utils/errors');
+const {
+  USER_NOT_FOUND, SAME_EMAIL, BAD_REQUEST, AUTH_SUCCESS, LEAVED_ACCOUNT,
+} = require('../utils/constants');
 
 const getMyInfo = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => {
-      throw new NotFoundError('Пользователь по указанному id не найден');
+      throw new NotFoundError(USER_NOT_FOUND);
     })
     .then((user) => res.send({ data: user }))
     .catch(next);
@@ -19,12 +22,17 @@ const updateProfile = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { email, name }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь по указанному id не найден');
+        throw new NotFoundError(USER_NOT_FOUND);
       } else {
         res.send({ data: user });
       }
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.code === 11000) {
+        return next(new ConflictingRequestError(SAME_EMAIL));
+      }
+      return next(err);
+    });
 };
 
 const createUser = (req, res, next) => {
@@ -35,9 +43,9 @@ const createUser = (req, res, next) => {
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Некорректно заполненные данные'));
+        return next(new BadRequestError(BAD_REQUEST));
       } if (err.code === 11000) {
-        return next(new ConflictingRequestError('Пользователь с таким Email уже существует'));
+        return next(new ConflictingRequestError(SAME_EMAIL));
       }
       return next(err);
     });
@@ -56,7 +64,7 @@ const login = (req, res, next) => {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
         })
-        .send({ message: 'Вы успешно авторизовались' });
+        .send({ message: AUTH_SUCCESS });
     })
     .catch(next);
 };
@@ -64,7 +72,7 @@ const login = (req, res, next) => {
 const logout = (req, res, next) => {
   const { JWT_SECRET } = process.env;
   try {
-    res.clearCookie(JWT_SECRET).send({ message: 'Вы вышли из аккаунта' });
+    res.clearCookie(JWT_SECRET).send({ message: LEAVED_ACCOUNT });
   } catch (err) {
     next(err);
   }

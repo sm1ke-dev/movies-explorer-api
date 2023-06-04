@@ -1,13 +1,15 @@
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
-const { getMyInfo, updateProfile } = require('../controllers/users');
+const auth = require('../middlewares/auth');
+const { createUserVal, loginVal, updateProfileVal } = require('../middlewares/validation');
+const {
+  createUser, login, logout, getMyInfo, updateProfile,
+} = require('../controllers/users');
 
-router.get('/me', getMyInfo);
-router.patch('/me', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().email(),
-    name: Joi.string().min(2).max(30),
-  }),
-}), updateProfile);
+router.post('/signup', createUserVal, createUser);
+router.post('/signin', loginVal, login);
+router.post('/signout', auth, logout);
+
+router.get('/users/me', auth, getMyInfo);
+router.patch('/users/me', auth, updateProfileVal, updateProfile);
 
 module.exports = router;

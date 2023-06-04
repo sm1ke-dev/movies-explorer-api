@@ -1,5 +1,6 @@
 const Movie = require('../models/movie');
 const { BadRequestError, NotFoundError, ForbiddenError } = require('../utils/errors');
+const { BAD_REQUEST, FILM_NOT_FOUND, FORBIDDEN_ERR } = require('../utils/constants');
 
 const getMovies = (req, res, next) => {
   Movie.find({})
@@ -42,7 +43,7 @@ const createMovie = (req, res, next) => {
     .then((movie) => res.status(201).send({ data: movie }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Некорректно заполненные данные'));
+        next(new BadRequestError(BAD_REQUEST));
       } else {
         next(err);
       }
@@ -52,7 +53,7 @@ const createMovie = (req, res, next) => {
 const deleteMovie = (req, res, next) => {
   Movie.findById(req.params._id)
     .orFail(() => {
-      throw new NotFoundError('Фильм с указанным id не найден');
+      throw new NotFoundError(FILM_NOT_FOUND);
     })
     .then((movie) => {
       if (movie.owner.toString() === req.user._id) {
@@ -60,7 +61,7 @@ const deleteMovie = (req, res, next) => {
           .then((deletedMovie) => res.send({ data: deletedMovie }))
           .catch(next);
       } else {
-        return Promise.reject(new ForbiddenError('Вы не можете удалить чужой фильм'));
+        return Promise.reject(new ForbiddenError(FORBIDDEN_ERR));
       }
       return Promise.resolve();
     })

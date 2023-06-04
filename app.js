@@ -1,25 +1,30 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-const { celebrate, Joi, errors } = require('celebrate');
+const { errors } = require('celebrate');
+const helmet = require('helmet');
 
-const { createUser, login, logout } = require('./controllers/users');
-const auth = require('./middlewares/auth');
+const { PRODUCTION_DB } = require('./utils/config');
+
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const limiter = require('./utils/rate-limiter-config');
 
 require('dotenv').config();
 
 const allowedCors = [];
 
-const { PORT = 3001 } = process.env;
+const { PORT = 3001, NODE_ENV, DB_ADDRESS } = process.env;
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
 
-mongoose.connect('mongodb://127.0.0.1:27017/bitfilmsdb', { useNewUrlParser: true });
+mongoose.connect(NODE_ENV === 'production' ? DB_ADDRESS : PRODUCTION_DB, { useNewUrlParser: true });
 
 app.use(requestLogger);
+
+app.use(helmet());
+app.use(limiter);
 
 app.use((req, res, next) => {
   const { origin } = req.headers;
@@ -45,38 +50,13 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    name: Joi.string().required().min(2).max(30),
-    password: Joi.string().required(),
-  }),
-}), createUser);
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), login);
-app.post('/signout', logout);
-
-app.use('/users', auth, require('./routes/users'));
-app.use('/movies', auth, require('./routes/movies'));
-
-app.use('*', require('./routes/404'));
+app.use('/', require('./routes'));
 
 app.use(errorLogger);
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
-  });
-  next();
-});
+app.use(require('./middlewares/error-handler'));
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
