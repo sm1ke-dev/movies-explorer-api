@@ -1,3 +1,3 @@
-const PRODUCTION_DB = 'mongodb://127.0.0.1:27017/bitfilmsdb';
+const PRODUCTION_DB = '127.0.0.1';
 
 module.exports = { PRODUCTION_DB };
