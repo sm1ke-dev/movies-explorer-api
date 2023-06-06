@@ -19,7 +19,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-mongoose.connect(`mongodb://${NODE_ENV === 'production' ? DB_ADDRESS : PRODUCTION_DB}:27017/bitfilmsdb`, { useNewUrlParser: true });
+mongoose.connect(NODE_ENV === 'production' ? DB_ADDRESS : PRODUCTION_DB, { useNewUrlParser: true });
 
 app.use(requestLogger);
 

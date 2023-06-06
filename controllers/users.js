@@ -70,9 +70,8 @@ const login = (req, res, next) => {
 };
 
 const logout = (req, res, next) => {
-  const { JWT_SECRET } = process.env;
   try {
-    res.clearCookie(JWT_SECRET).send({ message: LEAVED_ACCOUNT });
+    res.clearCookie('jwt').send({ message: LEAVED_ACCOUNT });
   } catch (err) {
     next(err);
   }
