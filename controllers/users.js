@@ -2,9 +2,17 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
-const { NotFoundError, BadRequestError, ConflictingRequestError } = require('../utils/errors');
 const {
-  USER_NOT_FOUND, SAME_EMAIL, BAD_REQUEST, AUTH_SUCCESS, LEAVED_ACCOUNT,
+  NotFoundError,
+  BadRequestError,
+  ConflictingRequestError,
+} = require('../utils/errors');
+const {
+  USER_NOT_FOUND,
+  SAME_EMAIL,
+  BAD_REQUEST,
+  AUTH_SUCCESS,
+  LEAVED_ACCOUNT,
 } = require('../utils/constants');
 
 const getMyInfo = (req, res, next) => {
@@ -19,7 +27,11 @@ const getMyInfo = (req, res, next) => {
 const updateProfile = (req, res, next) => {
   const { email, name } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { email, name }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { email, name },
+    { new: true, runValidators: true },
+  )
     .then((user) => {
       if (!user) {
         throw new NotFoundError(USER_NOT_FOUND);
@@ -38,13 +50,15 @@ const updateProfile = (req, res, next) => {
 const createUser = (req, res, next) => {
   const { email, name, password } = req.body;
 
-  bcrypt.hash(password, 10)
+  bcrypt
+    .hash(password, 10)
     .then((hash) => User.create({ email, name, password: hash }))
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError(BAD_REQUEST));
-      } if (err.code === 11000) {
+      }
+      if (err.code === 11000) {
         return next(new ConflictingRequestError(SAME_EMAIL));
       }
       return next(err);
@@ -57,7 +71,11 @@ const login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const { NODE_ENV, JWT_SECRET } = process.env;
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'secret-key', { expiresIn: '7d' });
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'secret-key',
+        { expiresIn: '7d' },
+      );
 
       res
         .cookie('jwt', token, {
@@ -78,5 +96,9 @@ const logout = (req, res, next) => {
 };
 
 module.exports = {
-  getMyInfo, updateProfile, createUser, login, logout,
+  getMyInfo,
+  updateProfile,
+  createUser,
+  login,
+  logout,
 };

@@ -11,7 +11,7 @@ const limiter = require('./utils/rate-limiter-config');
 
 require('dotenv').config();
 
-const allowedCors = [];
+const allowedCors = ['http://localhost:3000', 'https://bitfilms.gud.nomoredomains.rocks', 'http://bitfilms.gud.nomoredomains.rocks'];
 
 const { PORT = 3001, NODE_ENV, DB_ADDRESS } = process.env;
 const app = express();
@@ -19,7 +19,9 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-mongoose.connect(NODE_ENV === 'production' ? DB_ADDRESS : PRODUCTION_DB, { useNewUrlParser: true });
+mongoose.connect(NODE_ENV === 'production' ? DB_ADDRESS : PRODUCTION_DB, {
+  useNewUrlParser: true,
+});
 
 app.use(requestLogger);
 
