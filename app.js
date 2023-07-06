@@ -11,7 +11,7 @@ const limiter = require('./utils/rate-limiter-config');
 
 require('dotenv').config();
 
-const allowedCors = ['http://localhost:3000', 'https://bitfilms.gud.nomoredomains.rocks', 'http://bitfilms.gud.nomoredomains.rocks'];
+const allowedCors = ['http://localhost:3000', 'https://bitfilms.gud.nomoreparties.sbs', 'http://bitfilms.gud.nomoreparties.sbs'];
 
 const { PORT = 3001, NODE_ENV, DB_ADDRESS } = process.env;
 const app = express();
