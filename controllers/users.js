@@ -81,6 +81,8 @@ const login = (req, res, next) => {
         .cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
+          sameSite: 'none',
+          secure: true,
         })
         .send({ message: AUTH_SUCCESS });
     })
@@ -89,7 +91,11 @@ const login = (req, res, next) => {
 
 const logout = (req, res, next) => {
   try {
-    res.clearCookie('jwt').send({ message: LEAVED_ACCOUNT });
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    }).send({ message: LEAVED_ACCOUNT });
   } catch (err) {
     next(err);
   }
